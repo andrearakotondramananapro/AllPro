@@ -1,12 +1,35 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
-import { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { useState, useEffect } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../contexts/AuthContext';
+import { photoService } from '../services/photoService';
 
 export default function HomeScreen({ navigation }) {
   const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const { logout } = useAuth();
+
+  // Charger les photos au démarrage
+  useEffect(() => {
+    loadPhotos();
+  }, []);
+
+  const loadPhotos = async () => {
+    setLoading(true);
+    try {
+      const data = await photoService.getPhotos();
+      setPhotos(data.photos || data); // Adapter selon la structure de réponse
+    } catch (error) {
+      console.log('Erreur lors du chargement des photos:', error);
+      // Ne pas afficher d'alerte pour ne pas gêner l'utilisateur
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Demander les permissions et prendre une photo
   const takePhoto = async () => {
@@ -25,7 +48,8 @@ export default function HomeScreen({ navigation }) {
       });
 
       if (!result.canceled) {
-        setPhotos([...photos, result.assets[0]]);
+        // Uploader la photo vers l'API
+        await uploadPhoto(result.assets[0].uri);
       }
     } catch (error) {
       console.log('Erreur lors de la prise de photo:', error);
@@ -50,11 +74,28 @@ export default function HomeScreen({ navigation }) {
       });
 
       if (!result.canceled) {
-        setPhotos([...photos, result.assets[0]]);
+        // Uploader la photo vers l'API
+        await uploadPhoto(result.assets[0].uri);
       }
     } catch (error) {
       console.log('Erreur lors de l\'import de photo:', error);
       Alert.alert('Erreur', 'Impossible d\'importer une photo.');
+    }
+  };
+
+  // Uploader une photo vers l'API
+  const uploadPhoto = async (photoUri) => {
+    setUploading(true);
+    try {
+      const uploadedPhoto = await photoService.uploadPhoto(photoUri);
+      // Ajouter la photo uploadée à la liste
+      setPhotos([uploadedPhoto, ...photos]);
+      Alert.alert('Succès', 'Photo uploadée avec succès');
+    } catch (error) {
+      console.log('Erreur lors de l\'upload:', error);
+      Alert.alert('Erreur', error.message || 'Impossible d\'uploader la photo');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -65,7 +106,14 @@ export default function HomeScreen({ navigation }) {
       'Voulez-vous vraiment vous déconnecter ?',
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Déconnexion', style: 'destructive', onPress: () => navigation.navigate('Login') }
+        {
+          text: 'Déconnexion',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            navigation.navigate('Login');
+          }
+        }
       ]
     );
   };
@@ -106,7 +154,10 @@ export default function HomeScreen({ navigation }) {
       >
         {/* Section Actions */}
         <View style={styles.actionsContainer}>
-          <Text style={styles.sectionTitle}>Ajouter une photo</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Ajouter une photo</Text>
+            {uploading && <ActivityIndicator size="small" color="#d33434" />}
+          </View>
 
           <View style={styles.buttonsRow}>
             {/* Bouton Caméra */}
@@ -129,7 +180,12 @@ export default function HomeScreen({ navigation }) {
             Mes photos {photos.length > 0 && `(${photos.length})`}
           </Text>
 
-          {photos.length === 0 ? (
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#d33434" />
+              <Text style={styles.loadingText}>Chargement des photos...</Text>
+            </View>
+          ) : photos.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>Aucune photo pour le moment</Text>
               <Text style={styles.emptyStateSubtext}>Ajoutez votre première photo !</Text>
@@ -137,8 +193,11 @@ export default function HomeScreen({ navigation }) {
           ) : (
             <View style={styles.photoGrid}>
               {photos.map((photo, index) => (
-                <View key={index} style={styles.photoCard}>
-                  <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+                <View key={photo.id || index} style={styles.photoCard}>
+                  <Image
+                    source={{ uri: photo.url || photo.path || photo.uri }}
+                    style={styles.photoImage}
+                  />
                 </View>
               ))}
             </View>
@@ -277,11 +336,25 @@ const styles = StyleSheet.create({
   actionsContainer: {
     marginBottom: 30,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 16,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#6B6B6B',
+    fontSize: 14,
   },
   buttonsRow: {
     flexDirection: 'row',

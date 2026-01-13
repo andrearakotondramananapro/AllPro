@@ -1,17 +1,36 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Image, Alert, ActivityIndicator } from 'react-native';
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { login } = useAuth();
 
-  const handleLogin = () => {
-    // TODO: Implémenter la logique d'authentification
-    console.log('Login:', email, password);
+  const handleLogin = async () => {
+    // Validation
+    if (!email || !password) {
+      setError('Veuillez remplir tous les champs');
+      return;
+    }
 
-    // Navigation vers l'accueil après connexion
-    navigation.navigate('Home');
+    setLoading(true);
+    setError('');
+
+    try {
+      await login(email, password);
+      // Navigation vers l'accueil après connexion réussie
+      navigation.navigate('Home');
+    } catch (err) {
+      console.log('Erreur de connexion:', err);
+      setError(err.message || 'Email ou mot de passe incorrect');
+      Alert.alert('Erreur', err.message || 'Email ou mot de passe incorrect');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -74,8 +93,18 @@ export default function LoginScreen({ navigation }) {
             autoCapitalize="none"
           />
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Se connecter</Text>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.buttonText}>Se connecter</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.forgotPassword}>
@@ -255,5 +284,14 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: '#6B6B6B',
     fontSize: 14,
+  },
+  errorText: {
+    color: '#d33434',
+    fontSize: 14,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
