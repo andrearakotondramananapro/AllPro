@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { useState } from 'react';
 
 export default function LoginScreen({ navigation }) {
@@ -31,12 +31,14 @@ export default function LoginScreen({ navigation }) {
       >
         <StatusBar style="dark" />
 
-        {/* Logo Placeholder avec bordure subtile colorée */}
+        {/* Logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logoRing} />
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoText}>LOGO</Text>
-          </View>
+          <Image
+            source={require('../assets/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Titre avec ligne décorative */}
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: '#DC143C',
+    backgroundColor: '#d33434',
     opacity: 0.03,
   },
   circleBottomLeft: {
@@ -112,8 +114,8 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderRadius: 125,
-    backgroundColor: '#666',
-    opacity: 0.04,
+    backgroundColor: '#6B6B6B',
+    opacity: 0.05,
   },
   lineLeft: {
     position: 'absolute',
@@ -121,7 +123,7 @@ const styles = StyleSheet.create({
     top: '20%',
     width: 2,
     height: '30%',
-    backgroundColor: '#DC143C',
+    backgroundColor: '#d33434',
     opacity: 0.1,
   },
   lineTop: {
@@ -130,7 +132,7 @@ const styles = StyleSheet.create({
     right: '15%',
     width: '25%',
     height: 2,
-    backgroundColor: '#DC143C',
+    backgroundColor: '#d33434',
     opacity: 0.1,
   },
   accentBottomRight: {
@@ -141,7 +143,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: '#DC143C',
+    borderColor: '#d33434',
     opacity: 0.15,
   },
   container: {
@@ -158,33 +160,16 @@ const styles = StyleSheet.create({
   },
   logoRing: {
     position: 'absolute',
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
     borderWidth: 1,
-    borderColor: '#DC143C',
+    borderColor: '#d33434',
     opacity: 0.1,
   },
-  logoPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  logoText: {
-    fontSize: 16,
-    color: '#999',
-    fontWeight: '600',
+  logo: {
+    width: 140,
+    height: 140,
   },
   titleContainer: {
     position: 'relative',
@@ -197,7 +182,7 @@ const styles = StyleSheet.create({
     top: '50%',
     width: 3,
     height: 50,
-    backgroundColor: '#DC143C',
+    backgroundColor: '#d33434',
     borderRadius: 2,
     marginTop: -25,
   },
@@ -213,14 +198,15 @@ const styles = StyleSheet.create({
   titleSecondary: {
     fontSize: 28,
     fontWeight: '300',
-    color: '#DC143C',
+    color: '#d33434',
     letterSpacing: 0.5,
     marginTop: -4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#6B6B6B',
     marginBottom: 35,
+    fontWeight: '500',
   },
   formContainer: {
     width: '100%',
@@ -246,12 +232,12 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     height: 55,
-    backgroundColor: '#DC143C',
+    backgroundColor: '#d33434',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-    shadowColor: '#DC143C',
+    shadowColor: '#d33434',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -267,7 +253,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   forgotPasswordText: {
-    color: '#666',
+    color: '#6B6B6B',
     fontSize: 14,
   },
 });
