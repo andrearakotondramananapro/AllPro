@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, ScrollView, Image } fr
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen({ navigation }) {
   const [photos, setPhotos] = useState([]);
@@ -110,22 +111,13 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.buttonsRow}>
             {/* Bouton Caméra */}
             <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
-              <View style={styles.iconContainer}>
-                <View style={styles.cameraIcon}>
-                  <View style={styles.cameraLens} />
-                </View>
-              </View>
+              <Ionicons name="camera" size={48} color="#d33434" style={styles.icon} />
               <Text style={styles.actionButtonText}>Prendre une photo</Text>
             </TouchableOpacity>
 
             {/* Bouton Galerie */}
             <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
-              <View style={styles.iconContainer}>
-                <View style={styles.galleryIcon}>
-                  <View style={styles.galleryImage1} />
-                  <View style={styles.galleryImage2} />
-                </View>
-              </View>
+              <Ionicons name="images" size={48} color="#d33434" style={styles.icon} />
               <Text style={styles.actionButtonText}>Importer depuis galerie</Text>
             </TouchableOpacity>
           </View>
@@ -309,51 +301,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
-  iconContainer: {
+  icon: {
     marginBottom: 12,
-  },
-  cameraIcon: {
-    width: 60,
-    height: 50,
-    backgroundColor: '#d33434',
-    borderRadius: 12,
-    opacity: 0.9,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cameraLens: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
-  },
-  galleryIcon: {
-    width: 60,
-    height: 50,
-    position: 'relative',
-  },
-  galleryImage1: {
-    position: 'absolute',
-    width: 45,
-    height: 45,
-    backgroundColor: '#6B6B6B',
-    borderRadius: 8,
-    opacity: 0.4,
-    top: 5,
-    left: 5,
-  },
-  galleryImage2: {
-    position: 'absolute',
-    width: 45,
-    height: 45,
-    backgroundColor: '#d33434',
-    borderRadius: 8,
-    opacity: 0.9,
-    top: 0,
-    left: 10,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
   },
   actionButtonText: {
     fontSize: 14,
