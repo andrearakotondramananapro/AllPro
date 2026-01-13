@@ -4,6 +4,28 @@
 
 ---
 
+## ⚠️ IMPORTANT : Branches Git
+
+### 🌿 `main` - Version Affichage Seule
+- **UI complète** : Login, Home, caméra, galerie, design
+- **PAS d'intégration API** : Fonctionne en local sans backend
+- Photos stockées en mémoire uniquement
+- **Utilité** : Démo, tests UI, développement frontend
+
+### 🌿 `develop` - Version Intégration API ⭐
+- **UI complète** + **Intégration backend Laravel**
+- Connexion réelle avec API
+- Upload/Download photos depuis serveur
+- Gestion tokens, auth, etc.
+- **👉 C'EST CETTE VERSION QU'IL FAUT UTILISER POUR L'INTÉGRATION BACKEND**
+
+```bash
+# Pour travailler sur l'intégration backend :
+git checkout develop
+```
+
+---
+
 ## 🚀 Démarrage Rapide
 
 ### 1. Installation
@@ -244,14 +266,22 @@ Le token est automatiquement ajouté à chaque requête (voir `services/authServ
 
 ### Branches
 ```
-main         # Production stable
-develop      # Développement principal
+main         # UI seulement (affichage local, pas d'API)
+develop      # UI + Intégration API Laravel ⭐ UTILISER CELLE-CI
 feature/*    # Nouvelles fonctionnalités
 ```
 
+**⚠️ Important** :
+- `main` = Version démo sans backend
+- `develop` = Version production avec intégration API
+- **Toujours travailler sur `develop` pour l'intégration backend**
+
 ### Commandes courantes
 ```bash
-# Créer une branche
+# Basculer sur develop (IMPORTANT)
+git checkout develop
+
+# Créer une branche feature depuis develop
 git checkout -b feature/ma-feature
 
 # Commit
