@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AllPro is a React Native mobile application featuring:
+Evaluation formation is a React Native mobile application featuring:
 - User authentication via email and password
 - Photo capture from device camera
 - Photo import from device gallery
