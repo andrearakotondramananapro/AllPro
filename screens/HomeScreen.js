@@ -1,12 +1,86 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, ScrollView, Image, TextInput } from 'react-native';
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 
+// Données fictives
+const EMPLOYEES = [
+  { id: 1, name: 'Martin Dupont' },
+  { id: 2, name: 'Marie Durand' },
+  { id: 3, name: 'Pierre Martin' },
+  { id: 4, name: 'Sophie Bernard' },
+  { id: 5, name: 'Lucas Petit' },
+  { id: 6, name: 'Emma Leroy' },
+  { id: 7, name: 'Thomas Moreau' },
+  { id: 8, name: 'Camille Simon' },
+  { id: 9, name: 'Nicolas Laurent' },
+  { id: 10, name: 'Julie Lefebvre' },
+];
+
+const CATEGORIES = [
+  'Sécurité',
+  'Technique',
+  'Management',
+  'Qualité',
+  'Informatique',
+];
+
+const THEMES_BY_CATEGORY = {
+  'Sécurité': ['Habilitation électrique', 'Travail en hauteur', 'Gestes et postures', 'Incendie'],
+  'Technique': ['Soudure', 'Maintenance industrielle', 'Hydraulique', 'Pneumatique'],
+  'Management': ['Leadership', 'Gestion de projet', 'Communication', 'Gestion des conflits'],
+  'Qualité': ['ISO 9001', 'Lean Management', 'Six Sigma', 'Audit interne'],
+  'Informatique': ['Excel avancé', 'Power BI', 'SAP', 'Cybersécurité'],
+};
+
+const TRAINERS = [
+  { id: 1, name: 'Jean Formateur' },
+  { id: 2, name: 'Claire Expert' },
+  { id: 3, name: 'Michel Coach' },
+  { id: 4, name: 'Anne Pedagogue' },
+  { id: 5, name: 'François Mentor' },
+];
+
+const CENTERS = [
+  { id: 1, name: 'Centre Paris Nord' },
+  { id: 2, name: 'Centre Lyon Est' },
+  { id: 3, name: 'Centre Marseille Sud' },
+  { id: 4, name: 'Centre Bordeaux Ouest' },
+  { id: 5, name: 'Centre Lille Centre' },
+];
+
 export default function HomeScreen({ navigation }) {
-  const [photos, setPhotos] = useState([]);
+  // États du formulaire
+  const [photo, setPhoto] = useState(null);
+  const [employeeSearch, setEmployeeSearch] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedTheme, setSelectedTheme] = useState('');
+  const [trainerSearch, setTrainerSearch] = useState('');
+  const [selectedTrainer, setSelectedTrainer] = useState(null);
+  const [centerSearch, setCenterSearch] = useState('');
+  const [selectedCenter, setSelectedCenter] = useState(null);
+
+  // États pour afficher/cacher les suggestions
+  const [showEmployeeSuggestions, setShowEmployeeSuggestions] = useState(false);
+  const [showTrainerSuggestions, setShowTrainerSuggestions] = useState(false);
+  const [showCenterSuggestions, setShowCenterSuggestions] = useState(false);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showThemePicker, setShowThemePicker] = useState(false);
+
+  // Filtrer les suggestions
+  const filteredEmployees = EMPLOYEES.filter(emp =>
+    emp.name.toLowerCase().includes(employeeSearch.toLowerCase())
+  );
+  const filteredTrainers = TRAINERS.filter(t =>
+    t.name.toLowerCase().includes(trainerSearch.toLowerCase())
+  );
+  const filteredCenters = CENTERS.filter(c =>
+    c.name.toLowerCase().includes(centerSearch.toLowerCase())
+  );
+  const availableThemes = selectedCategory ? THEMES_BY_CATEGORY[selectedCategory] || [] : [];
 
   // Demander les permissions et prendre une photo
   const takePhoto = async () => {
@@ -25,7 +99,7 @@ export default function HomeScreen({ navigation }) {
       });
 
       if (!result.canceled) {
-        setPhotos([...photos, result.assets[0]]);
+        setPhoto(result.assets[0]);
       }
     } catch (error) {
       console.log('Erreur lors de la prise de photo:', error);
@@ -50,12 +124,98 @@ export default function HomeScreen({ navigation }) {
       });
 
       if (!result.canceled) {
-        setPhotos([...photos, result.assets[0]]);
+        setPhoto(result.assets[0]);
       }
     } catch (error) {
       console.log('Erreur lors de l\'import de photo:', error);
       Alert.alert('Erreur', 'Impossible d\'importer une photo.');
     }
+  };
+
+  // Supprimer la photo
+  const removePhoto = () => {
+    setPhoto(null);
+  };
+
+  // Sélection d'un employé
+  const selectEmployee = (employee) => {
+    setSelectedEmployee(employee);
+    setEmployeeSearch(employee.name);
+    setShowEmployeeSuggestions(false);
+  };
+
+  // Sélection d'une catégorie
+  const selectCategory = (category) => {
+    setSelectedCategory(category);
+    setSelectedTheme(''); // Reset theme when category changes
+    setShowCategoryPicker(false);
+  };
+
+  // Sélection d'un thème
+  const selectTheme = (theme) => {
+    setSelectedTheme(theme);
+    setShowThemePicker(false);
+  };
+
+  // Sélection d'un formateur
+  const selectTrainer = (trainer) => {
+    setSelectedTrainer(trainer);
+    setTrainerSearch(trainer.name);
+    setShowTrainerSuggestions(false);
+  };
+
+  // Sélection d'un centre
+  const selectCenter = (center) => {
+    setSelectedCenter(center);
+    setCenterSearch(center.name);
+    setShowCenterSuggestions(false);
+  };
+
+  // Validation du formulaire
+  const handleSubmit = () => {
+    if (!photo) {
+      Alert.alert('Erreur', 'Veuillez ajouter une photo.');
+      return;
+    }
+    if (!selectedEmployee) {
+      Alert.alert('Erreur', 'Veuillez sélectionner un employé.');
+      return;
+    }
+    if (!selectedCategory) {
+      Alert.alert('Erreur', 'Veuillez sélectionner une catégorie.');
+      return;
+    }
+    if (!selectedTheme) {
+      Alert.alert('Erreur', 'Veuillez sélectionner un thème.');
+      return;
+    }
+    if (!selectedTrainer) {
+      Alert.alert('Erreur', 'Veuillez sélectionner un formateur.');
+      return;
+    }
+    if (!selectedCenter) {
+      Alert.alert('Erreur', 'Veuillez sélectionner un centre de formation.');
+      return;
+    }
+
+    Alert.alert(
+      'Succès',
+      `Évaluation enregistrée !\n\nEmployé: ${selectedEmployee.name}\nCatégorie: ${selectedCategory}\nThème: ${selectedTheme}\nFormateur: ${selectedTrainer.name}\nCentre: ${selectedCenter.name}`,
+      [{ text: 'OK', onPress: resetForm }]
+    );
+  };
+
+  // Reset du formulaire
+  const resetForm = () => {
+    setPhoto(null);
+    setEmployeeSearch('');
+    setSelectedEmployee(null);
+    setSelectedCategory('');
+    setSelectedTheme('');
+    setTrainerSearch('');
+    setSelectedTrainer(null);
+    setCenterSearch('');
+    setSelectedCenter(null);
   };
 
   // Déconnexion
@@ -72,7 +232,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.wrapper}>
-      {/* Éléments décoratifs en arrière-plan (identique au login) */}
+      {/* Éléments décoratifs en arrière-plan */}
       <View style={styles.decorativeBackground}>
         <View style={styles.circleTopRight} />
         <View style={styles.circleBottomLeft} />
@@ -90,7 +250,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.titleAccent} />
             <View>
               <Text style={styles.title}>Évaluation Formation</Text>
-              <Text style={styles.subtitle}>Accueil</Text>
+              <Text style={styles.subtitle}>Formulaire</Text>
             </View>
           </View>
         </View>
@@ -103,47 +263,197 @@ export default function HomeScreen({ navigation }) {
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Section Actions */}
-        <View style={styles.actionsContainer}>
-          <Text style={styles.sectionTitle}>Ajouter une photo</Text>
+        {/* Section Photo */}
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Photo</Text>
 
-          <View style={styles.buttonsRow}>
-            {/* Bouton Caméra */}
-            <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
-              <Ionicons name="camera" size={48} color="#d33434" style={styles.icon} />
-              <Text style={styles.actionButtonText}>Prendre une photo</Text>
-            </TouchableOpacity>
-
-            {/* Bouton Galerie */}
-            <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
-              <Ionicons name="images" size={48} color="#d33434" style={styles.icon} />
-              <Text style={styles.actionButtonText}>Importer depuis galerie</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Section Photos */}
-        <View style={styles.photosContainer}>
-          <Text style={styles.sectionTitle}>
-            Mes photos {photos.length > 0 && `(${photos.length})`}
-          </Text>
-
-          {photos.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Aucune photo pour le moment</Text>
-              <Text style={styles.emptyStateSubtext}>Ajoutez votre première photo !</Text>
+          {photo ? (
+            <View style={styles.photoPreviewContainer}>
+              <Image source={{ uri: photo.uri }} style={styles.photoPreview} />
+              <TouchableOpacity style={styles.removePhotoButton} onPress={removePhoto}>
+                <Ionicons name="close-circle" size={28} color="#d33434" />
+              </TouchableOpacity>
             </View>
           ) : (
-            <View style={styles.photoGrid}>
-              {photos.map((photo, index) => (
-                <View key={index} style={styles.photoCard}>
-                  <Image source={{ uri: photo.uri }} style={styles.photoImage} />
-                </View>
+            <View style={styles.buttonsRow}>
+              <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
+                <Ionicons name="camera" size={32} color="#d33434" />
+                <Text style={styles.actionButtonText}>Caméra</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
+                <Ionicons name="images" size={32} color="#d33434" />
+                <Text style={styles.actionButtonText}>Galerie</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {/* Champ Employé */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Employé</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Rechercher un employé..."
+            placeholderTextColor="#999"
+            value={employeeSearch}
+            onChangeText={(text) => {
+              setEmployeeSearch(text);
+              setSelectedEmployee(null);
+              setShowEmployeeSuggestions(text.length > 0);
+            }}
+            onFocus={() => setShowEmployeeSuggestions(employeeSearch.length > 0)}
+          />
+          {showEmployeeSuggestions && filteredEmployees.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              {filteredEmployees.slice(0, 5).map((employee) => (
+                <TouchableOpacity
+                  key={employee.id}
+                  style={styles.suggestionItem}
+                  onPress={() => selectEmployee(employee)}
+                >
+                  <Text style={styles.suggestionText}>{employee.name}</Text>
+                </TouchableOpacity>
               ))}
             </View>
           )}
         </View>
+
+        {/* Champ Catégorie */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Catégorie</Text>
+          <TouchableOpacity
+            style={styles.pickerButton}
+            onPress={() => setShowCategoryPicker(!showCategoryPicker)}
+          >
+            <Text style={selectedCategory ? styles.pickerText : styles.pickerPlaceholder}>
+              {selectedCategory || 'Sélectionner une catégorie...'}
+            </Text>
+            <Ionicons name={showCategoryPicker ? "chevron-up" : "chevron-down"} size={20} color="#6B6B6B" />
+          </TouchableOpacity>
+          {showCategoryPicker && (
+            <View style={styles.suggestionsContainer}>
+              {CATEGORIES.map((category) => (
+                <TouchableOpacity
+                  key={category}
+                  style={[
+                    styles.suggestionItem,
+                    selectedCategory === category && styles.selectedSuggestion
+                  ]}
+                  onPress={() => selectCategory(category)}
+                >
+                  <Text style={[
+                    styles.suggestionText,
+                    selectedCategory === category && styles.selectedSuggestionText
+                  ]}>{category}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Champ Thème */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Thème</Text>
+          <TouchableOpacity
+            style={[styles.pickerButton, !selectedCategory && styles.pickerDisabled]}
+            onPress={() => selectedCategory && setShowThemePicker(!showThemePicker)}
+            disabled={!selectedCategory}
+          >
+            <Text style={selectedTheme ? styles.pickerText : styles.pickerPlaceholder}>
+              {selectedTheme || (selectedCategory ? 'Sélectionner un thème...' : 'Sélectionnez d\'abord une catégorie')}
+            </Text>
+            <Ionicons name={showThemePicker ? "chevron-up" : "chevron-down"} size={20} color="#6B6B6B" />
+          </TouchableOpacity>
+          {showThemePicker && availableThemes.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              {availableThemes.map((theme) => (
+                <TouchableOpacity
+                  key={theme}
+                  style={[
+                    styles.suggestionItem,
+                    selectedTheme === theme && styles.selectedSuggestion
+                  ]}
+                  onPress={() => selectTheme(theme)}
+                >
+                  <Text style={[
+                    styles.suggestionText,
+                    selectedTheme === theme && styles.selectedSuggestionText
+                  ]}>{theme}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Champ Formateur */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Formateur</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Rechercher un formateur..."
+            placeholderTextColor="#999"
+            value={trainerSearch}
+            onChangeText={(text) => {
+              setTrainerSearch(text);
+              setSelectedTrainer(null);
+              setShowTrainerSuggestions(text.length > 0);
+            }}
+            onFocus={() => setShowTrainerSuggestions(trainerSearch.length > 0)}
+          />
+          {showTrainerSuggestions && filteredTrainers.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              {filteredTrainers.slice(0, 5).map((trainer) => (
+                <TouchableOpacity
+                  key={trainer.id}
+                  style={styles.suggestionItem}
+                  onPress={() => selectTrainer(trainer)}
+                >
+                  <Text style={styles.suggestionText}>{trainer.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Champ Centre */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Centre de formation</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Rechercher un centre..."
+            placeholderTextColor="#999"
+            value={centerSearch}
+            onChangeText={(text) => {
+              setCenterSearch(text);
+              setSelectedCenter(null);
+              setShowCenterSuggestions(text.length > 0);
+            }}
+            onFocus={() => setShowCenterSuggestions(centerSearch.length > 0)}
+          />
+          {showCenterSuggestions && filteredCenters.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              {filteredCenters.slice(0, 5).map((center) => (
+                <TouchableOpacity
+                  key={center.id}
+                  style={styles.suggestionItem}
+                  onPress={() => selectCenter(center)}
+                >
+                  <Text style={styles.suggestionText}>{center.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Bouton Valider */}
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" style={styles.submitIcon} />
+          <Text style={styles.submitButtonText}>Valider l'évaluation</Text>
+        </TouchableOpacity>
+
       </ScrollView>
     </View>
   );
@@ -212,9 +522,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 100,
+    paddingTop: 60,
     paddingHorizontal: 25,
-    paddingBottom: 20,
+    paddingBottom: 15,
   },
   headerLeft: {
     flex: 1,
@@ -271,27 +581,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 30,
-    paddingBottom: 30,
+    paddingHorizontal: 25,
+    paddingBottom: 40,
   },
-  actionsContainer: {
-    marginBottom: 30,
+  formSection: {
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#333',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   buttonsRow: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 12,
   },
   actionButton: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -301,56 +611,128 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
-  icon: {
-    marginBottom: 12,
-  },
   actionButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 8,
+  },
+  photoPreviewContainer: {
+    position: 'relative',
+    alignItems: 'center',
+  },
+  photoPreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    backgroundColor: '#E0E0E0',
+  },
+  removePhotoButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+  },
+  inputContainer: {
+    marginBottom: 16,
+    zIndex: 1,
+  },
+  inputLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
-    textAlign: 'center',
+    marginBottom: 8,
   },
-  photosContainer: {
-    marginTop: 10,
-  },
-  emptyState: {
+  textInput: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 40,
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 15,
+    color: '#333',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  suggestionsContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    overflow: 'hidden',
+  },
+  suggestionItem: {
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  suggestionText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  selectedSuggestion: {
+    backgroundColor: '#FFF5F5',
+  },
+  selectedSuggestionText: {
+    color: '#d33434',
+    fontWeight: '600',
+  },
+  pickerButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    borderStyle: 'dashed',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#6B6B6B',
-    fontWeight: '600',
-    marginBottom: 8,
+  pickerDisabled: {
+    backgroundColor: '#F5F5F5',
   },
-  emptyStateSubtext: {
-    fontSize: 14,
+  pickerText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  pickerPlaceholder: {
+    fontSize: 15,
     color: '#999',
   },
-  photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-  },
-  photoCard: {
-    width: '47%',
-    aspectRatio: 1,
-    backgroundColor: '#FFFFFF',
+  submitButton: {
+    backgroundColor: '#d33434',
     borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    shadowColor: '#d33434',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 4,
   },
-  photoImage: {
-    width: '100%',
-    height: '100%',
+  submitIcon: {
+    marginRight: 8,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

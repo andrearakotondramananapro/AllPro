@@ -7,9 +7,9 @@
 ## ⚠️ IMPORTANT : Branches Git
 
 ### 🌿 `main` - Version Affichage Seule
-- **UI complète** : Login, Home, caméra, galerie, design
+- **UI complète** : Login, Formulaire d'évaluation, caméra, galerie, design
 - **PAS d'intégration API** : Fonctionne en local sans backend
-- Photos stockées en mémoire uniquement
+- Données fictives pour les listes (employés, formateurs, centres, etc.)
 - **Utilité** : Démo, tests UI, développement frontend
 
 ### 🌿 `develop` - Version Intégration API ⭐
@@ -112,18 +112,27 @@ AllPro/
 ---
 
 ### HomeScreen
-**Rôle** : Gestion des photos
+**Rôle** : Formulaire d'évaluation de formation
 
 **Features** :
-- Boutons caméra/galerie avec icônes
-- Éditeur optionnel (pinch/zoom)
-- Upload auto vers API après capture
-- Affichage grille des photos
+- **Section Photo** : Capture caméra ou import galerie (une seule photo)
+- **Champ Employé** : Auto-complétion avec recherche
+- **Champ Catégorie** : Liste déroulante (Sécurité, Technique, Management, Qualité, Informatique)
+- **Champ Thème** : Liste déroulante dépendante de la catégorie sélectionnée
+- **Champ Formateur** : Auto-complétion avec recherche
+- **Champ Centre** : Auto-complétion avec recherche
+- **Bouton Valider** : Validation de tous les champs obligatoires
 - Déconnexion
 
+**Données fictives** (version `main`) :
+- 10 employés
+- 5 catégories avec thèmes associés
+- 5 formateurs
+- 5 centres de formation
+
 **Hooks** :
-- `useAuth()` : Déconnexion
-- `useEffect()` : Charger photos au mount
+- `useState()` : Gestion des états du formulaire (photo, sélections, recherches)
+- Filtrage dynamique des suggestions
 
 ---
 
@@ -248,6 +257,121 @@ Authorization: Bearer {token}
 
 ---
 
+#### 6. **GET /employees**
+**Headers** :
+```
+Authorization: Bearer {token}
+```
+
+**Réponse** :
+```json
+{
+  "employees": [
+    { "id": 1, "name": "Martin Dupont" },
+    { "id": 2, "name": "Marie Durand" }
+  ]
+}
+```
+
+---
+
+#### 7. **GET /categories**
+**Headers** :
+```
+Authorization: Bearer {token}
+```
+
+**Réponse** :
+```json
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Sécurité",
+      "themes": ["Habilitation électrique", "Travail en hauteur", "Gestes et postures", "Incendie"]
+    },
+    {
+      "id": 2,
+      "name": "Technique",
+      "themes": ["Soudure", "Maintenance industrielle", "Hydraulique", "Pneumatique"]
+    }
+  ]
+}
+```
+
+---
+
+#### 8. **GET /trainers**
+**Headers** :
+```
+Authorization: Bearer {token}
+```
+
+**Réponse** :
+```json
+{
+  "trainers": [
+    { "id": 1, "name": "Jean Formateur" },
+    { "id": 2, "name": "Claire Expert" }
+  ]
+}
+```
+
+---
+
+#### 9. **GET /centers**
+**Headers** :
+```
+Authorization: Bearer {token}
+```
+
+**Réponse** :
+```json
+{
+  "centers": [
+    { "id": 1, "name": "Centre Paris Nord" },
+    { "id": 2, "name": "Centre Lyon Est" }
+  ]
+}
+```
+
+---
+
+#### 10. **POST /evaluations**
+**Headers** :
+```
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+```
+
+**Envoi** :
+```
+FormData {
+  photo: File (image/jpeg, image/png)
+  employee_id: 1
+  category: "Sécurité"
+  theme: "Habilitation électrique"
+  trainer_id: 1
+  center_id: 1
+}
+```
+
+**Réponse** :
+```json
+{
+  "id": 1,
+  "employee": { "id": 1, "name": "Martin Dupont" },
+  "category": "Sécurité",
+  "theme": "Habilitation électrique",
+  "trainer": { "id": 1, "name": "Jean Formateur" },
+  "center": { "id": 1, "name": "Centre Paris Nord" },
+  "photo_url": "https://domain.com/storage/evaluations/eval1.jpg",
+  "created_at": "2026-01-16T10:00:00.000000Z"
+}
+```
+
+---
+
 ## 🔐 Authentification
 
 ### Flux
@@ -358,12 +482,21 @@ npx expo start -c  # Clear cache
 
 Le backend doit implémenter :
 
-✅ **Routes** :
+✅ **Routes Auth** :
 - `POST /api/login`
 - `POST /api/logout`
+
+✅ **Routes Photos** :
 - `GET /api/photos`
 - `POST /api/photos`
 - `DELETE /api/photos/{id}`
+
+✅ **Routes Évaluations** :
+- `GET /api/employees` - Liste des employés
+- `GET /api/categories` - Liste des catégories avec thèmes
+- `GET /api/trainers` - Liste des formateurs
+- `GET /api/centers` - Liste des centres de formation
+- `POST /api/evaluations` - Soumettre une évaluation
 
 ✅ **Auth** :
 - Laravel Sanctum ou JWT
@@ -382,9 +515,16 @@ Le backend doit implémenter :
 
 ✅ Login/Logout avec API
 ✅ Gestion token AsyncStorage
-✅ Upload photos (caméra + galerie)
+✅ Capture photo (caméra + galerie)
 ✅ Éditeur optionnel (crop/resize)
-✅ Affichage grille photos
+✅ **Formulaire d'évaluation complet** :
+  - Champ employé avec auto-complétion
+  - Sélecteur de catégorie
+  - Sélecteur de thème (dépendant de la catégorie)
+  - Champ formateur avec auto-complétion
+  - Champ centre avec auto-complétion
+  - Validation de tous les champs obligatoires
+✅ Données fictives pour tests (branche `main`)
 ✅ Loading states
 ✅ Gestion erreurs
 ✅ Design responsive
@@ -396,9 +536,11 @@ Le backend doit implémenter :
 L'app est **100% prête** à recevoir le backend Laravel.
 Il suffit de :
 
-1. Créer les routes Laravel mentionnées ci-dessus
-2. Modifier l'URL de prod dans `config/api.js`
-3. Tester !
+1. Créer les routes Laravel mentionnées ci-dessus (auth, photos, évaluations)
+2. Créer les tables : `employees`, `categories`, `themes`, `trainers`, `centers`, `evaluations`
+3. Modifier l'URL de prod dans `config/api.js`
+4. Remplacer les données fictives par des appels API dans `HomeScreen.js`
+5. Tester !
 
 ---
 
