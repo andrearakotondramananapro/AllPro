@@ -51,6 +51,21 @@ const CENTERS = [
   { id: 5, name: 'Centre Lille Centre' },
 ];
 
+const EVALUATION_TYPES = [
+  'À chaud',
+  'À froid',
+];
+
+const LOCATIONS = [
+  { id: 1, name: 'Atelier A' },
+  { id: 2, name: 'Atelier B' },
+  { id: 3, name: 'Salle de formation 1' },
+  { id: 4, name: 'Salle de formation 2' },
+  { id: 5, name: 'Salle de conférence' },
+  { id: 6, name: 'Bureau principal' },
+  { id: 7, name: 'Espace polyvalent' },
+];
+
 export default function HomeScreen({ navigation }) {
   // États du formulaire
   const [photo, setPhoto] = useState(null);
@@ -62,13 +77,18 @@ export default function HomeScreen({ navigation }) {
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [centerSearch, setCenterSearch] = useState('');
   const [selectedCenter, setSelectedCenter] = useState(null);
+  const [selectedEvaluationType, setSelectedEvaluationType] = useState('');
+  const [locationSearch, setLocationSearch] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   // États pour afficher/cacher les suggestions
   const [showEmployeeSuggestions, setShowEmployeeSuggestions] = useState(false);
   const [showTrainerSuggestions, setShowTrainerSuggestions] = useState(false);
   const [showCenterSuggestions, setShowCenterSuggestions] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showEvaluationTypePicker, setShowEvaluationTypePicker] = useState(false);
 
   // Filtrer les suggestions
   const filteredEmployees = EMPLOYEES.filter(emp =>
@@ -81,6 +101,9 @@ export default function HomeScreen({ navigation }) {
     c.name.toLowerCase().includes(centerSearch.toLowerCase())
   );
   const availableThemes = selectedCategory ? THEMES_BY_CATEGORY[selectedCategory] || [] : [];
+  const filteredLocations = LOCATIONS.filter(loc =>
+    loc.name.toLowerCase().includes(locationSearch.toLowerCase())
+  );
 
   // Demander les permissions et prendre une photo
   const takePhoto = async () => {
@@ -171,6 +194,19 @@ export default function HomeScreen({ navigation }) {
     setShowCenterSuggestions(false);
   };
 
+  // Sélection d'un type d'évaluation
+  const selectEvaluationType = (type) => {
+    setSelectedEvaluationType(type);
+    setShowEvaluationTypePicker(false);
+  };
+
+  // Sélection d'un lieu
+  const selectLocation = (location) => {
+    setSelectedLocation(location);
+    setLocationSearch(location.name);
+    setShowLocationSuggestions(false);
+  };
+
   // Validation du formulaire
   const handleSubmit = () => {
     if (!photo) {
@@ -197,10 +233,18 @@ export default function HomeScreen({ navigation }) {
       Alert.alert('Erreur', 'Veuillez sélectionner un centre de formation.');
       return;
     }
+    if (!selectedEvaluationType) {
+      Alert.alert('Erreur', 'Veuillez sélectionner un type d\'évaluation.');
+      return;
+    }
+    if (!selectedLocation) {
+      Alert.alert('Erreur', 'Veuillez sélectionner un lieu.');
+      return;
+    }
 
     Alert.alert(
       'Succès',
-      `Évaluation enregistrée !\n\nEmployé: ${selectedEmployee.name}\nCatégorie: ${selectedCategory}\nThème: ${selectedTheme}\nFormateur: ${selectedTrainer.name}\nCentre: ${selectedCenter.name}`,
+      `Évaluation enregistrée !\n\nEmployé: ${selectedEmployee.name}\nCatégorie: ${selectedCategory}\nThème: ${selectedTheme}\nFormateur: ${selectedTrainer.name}\nCentre: ${selectedCenter.name}\nType: ${selectedEvaluationType}\nLieu: ${selectedLocation.name}`,
       [{ text: 'OK', onPress: resetForm }]
     );
   };
@@ -216,6 +260,9 @@ export default function HomeScreen({ navigation }) {
     setSelectedTrainer(null);
     setCenterSearch('');
     setSelectedCenter(null);
+    setSelectedEvaluationType('');
+    setLocationSearch('');
+    setSelectedLocation(null);
   };
 
   // Déconnexion
@@ -315,6 +362,38 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => selectEmployee(employee)}
                 >
                   <Text style={styles.suggestionText}>{employee.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+        {/* Champ Type d'évaluation */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Type d'évaluation</Text>
+          <TouchableOpacity
+            style={styles.pickerButton}
+            onPress={() => setShowEvaluationTypePicker(!showEvaluationTypePicker)}
+          >
+            <Text style={selectedEvaluationType ? styles.pickerText : styles.pickerPlaceholder}>
+              {selectedEvaluationType || 'Sélectionner un type...'}
+            </Text>
+            <Ionicons name={showEvaluationTypePicker ? "chevron-up" : "chevron-down"} size={20} color="#6B6B6B" />
+          </TouchableOpacity>
+          {showEvaluationTypePicker && (
+            <View style={styles.suggestionsContainer}>
+              {EVALUATION_TYPES.map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.suggestionItem,
+                    selectedEvaluationType === type && styles.selectedSuggestion
+                  ]}
+                  onPress={() => selectEvaluationType(type)}
+                >
+                  <Text style={[
+                    styles.suggestionText,
+                    selectedEvaluationType === type && styles.selectedSuggestionText
+                  ]}>{type}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -447,6 +526,39 @@ export default function HomeScreen({ navigation }) {
             </View>
           )}
         </View>
+        {/* Champ Lieu */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Lieu</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Rechercher un lieu..."
+            placeholderTextColor="#999"
+            value={locationSearch}
+            onChangeText={(text) => {
+              setLocationSearch(text);
+              setSelectedLocation(null);
+              setShowLocationSuggestions(text.length > 0);
+            }}
+            onFocus={() => setShowLocationSuggestions(locationSearch.length > 0)}
+          />
+          {showLocationSuggestions && filteredLocations.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              {filteredLocations.slice(0, 5).map((location) => (
+                <TouchableOpacity
+                  key={location.id}
+                  style={styles.suggestionItem}
+                  onPress={() => selectLocation(location)}
+                >
+                  <Text style={styles.suggestionText}>{location.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        
+
+        
 
         {/* Bouton Valider */}
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
