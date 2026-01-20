@@ -66,6 +66,28 @@ const LOCATIONS = [
   { id: 7, name: 'Espace polyvalent' },
 ];
 
+const RESPONSES = [
+  { iquestion: 'A1', reponse: 8 },
+  { iquestion: 'A2', reponse: 7 },
+  { iquestion: 'A3', reponse: 8 },
+  { iquestion: 'B1', reponse: 8 },
+  { iquestion: 'B2', reponse: 7 },
+  { iquestion: 'B3', reponse: 8 },
+  { iquestion: 'B4', reponse: 8 },
+  { iquestion: 'B5', reponse: 7 },
+  { iquestion: 'B6', reponse: 8 },
+  { iquestion: 'C1', reponse: 8 },
+  { iquestion: 'C2', reponse: 7 },
+  { iquestion: 'C3', reponse: 8 },
+  { iquestion: 'C4', reponse: 8 },
+  { iquestion: 'C5', reponse: 7 },
+  { iquestion: 'C6', reponse: 8 },
+  { iquestion: 'C1', reponse: 'commentaire 1' },
+  { iquestion: 'C2', reponse: 'commentaire 2' },
+  { iquestion: 'C3', reponse: 'commentaire 3' },
+  { iquestion: 'C4', reponse: 'commentaire 4' },
+];
+
 export default function HomeScreen({ navigation }) {
   // États du formulaire
   const [photo, setPhoto] = useState(null);
@@ -242,10 +264,16 @@ export default function HomeScreen({ navigation }) {
       return;
     }
 
+    // Formater les réponses
+    const responsesText = RESPONSES.map(r => `${r.iquestion}: ${r.reponse}`).join('\n');
+    
     Alert.alert(
-      'Succès',
-      `Évaluation enregistrée !\n\nEmployé: ${selectedEmployee.name}\nCatégorie: ${selectedCategory}\nThème: ${selectedTheme}\nFormateur: ${selectedTrainer.name}\nCentre: ${selectedCenter.name}\nType: ${selectedEvaluationType}\nLieu: ${selectedLocation.name}`,
-      [{ text: 'OK', onPress: resetForm }]
+      'Confirmation d\'enregistrement',
+      `Employé: ${selectedEmployee.name}\nCatégorie: ${selectedCategory}\nThème: ${selectedTheme}\nFormateur: ${selectedTrainer.name}\nCentre: ${selectedCenter.name}\nType: ${selectedEvaluationType}\nLieu: ${selectedLocation.name}\n\nRéponses:\n${responsesText}`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Enregistrer', style: 'default', onPress: resetForm }
+      ]
     );
   };
 
